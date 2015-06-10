@@ -163,8 +163,8 @@ void APP_Tasks ( void )
         {
             /* Toggle LED */
             BSP_LEDToggle(BSP_LED_1);
-            /*BSP_LED_3+5*/
-            /*PORTS_BIT_POS_7*/
+       
+
 
             /* Put the application back to the count state */
             appData.state = APP_STATE_COUNT;

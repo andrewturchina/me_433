@@ -71,35 +71,13 @@ int main ( void )
 {
     /* Initialize all MPLAB Harmony modules, including application(s). */
     SYS_Initialize ( NULL );
-    display_init();
-    display_clear();
-    acc_setup();
 
-    char message[20]
-    short temp;
-    short accel[3];
-    short mag[3];
-
-    oled_write(15, 30, message);
-    display_draw();
 
     while ( true )
     {
         /* Maintain state machines of all polled MPLAB Harmony modules. */
         SYS_Tasks ( );
 
-        acc_read_register(OUT_X_L_A, (unsigned char *) accel, 6);
-
-        // need to read all 6 bytes in one transaction to get an update.
-
-        acc_read_register(OUT_X_L_M, (unsigned char *) mag, 6);
-
-        // read the temperature data. Its a right justified 12 bit two's compliment number
-
-        acc_read_register(TEMP_OUT_L, (unsigned char *) &temp, 2);
-
-        //input x and y acceleration values in two's complement to the oled_follow_accel function
-        oled_follow_accel(~accel[0],~accel[1]);
     }
 
     /* Execution should not come here during normal operation */

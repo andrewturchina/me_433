@@ -55,6 +55,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 #include "app.h"
 #include "home/Documents/me_433/ME433_2015/I2C/i2cdisplay.h"
+#include "home/Documents/me_433/ME433_2015/I2C/accel.h"
 
 // *****************************************************************************
 // *****************************************************************************
@@ -201,8 +202,6 @@ void APP_USBDeviceEventHandler(USB_DEVICE_EVENT event, void * eventData, uintptr
             appData.state = APP_STATE_WAIT_FOR_CONFIGURATION;
             appData.emulateMouse = true;
             BSP_LEDOn ( APP_USB_LED_1 );
-            BSP_LEDOn ( APP_USB_LED_2 );
-            BSP_LEDOff ( APP_USB_LED_3 );
 
             break;
 
@@ -215,8 +214,6 @@ void APP_USBDeviceEventHandler(USB_DEVICE_EVENT event, void * eventData, uintptr
                 appData.isConfigured = true;
                 
                 BSP_LEDOff ( APP_USB_LED_1 );
-                BSP_LEDOff ( APP_USB_LED_2 );
-                BSP_LEDOn ( APP_USB_LED_3 );
 
                 /* Register the Application HID Event Handler. */
 
@@ -239,8 +236,6 @@ void APP_USBDeviceEventHandler(USB_DEVICE_EVENT event, void * eventData, uintptr
 
         case USB_DEVICE_EVENT_SUSPENDED:
             BSP_LEDOff ( APP_USB_LED_1 );
-            BSP_LEDOn ( APP_USB_LED_2 );
-            BSP_LEDOn ( APP_USB_LED_3 );
             break;
 
         case USB_DEVICE_EVENT_RESUMED:
@@ -330,6 +325,13 @@ void APP_Initialize ( void )
     appData.isMouseReportSendBusy = false;
     appData.isSwitchPressed = false;
     appData.ignoreSwitchPress = false;
+
+    // Initialize the display		
+    display_init();		
+    display_clear();		
+    display_draw();		
+    // Now initialize our accelerometer		
+    acc_setup();
 }
 
 
@@ -407,12 +409,21 @@ void APP_Tasks ( void )
 
                 if(movement_length > 50)
                 {
+	            short accels[2];		
+                    acc_read_register( OUT_X_L_A, (unsigned char*)accels, 4 );
                     appData.mouseButton[0] = MOUSE_BUTTON_STATE_RELEASED;
                     appData.mouseButton[1] = MOUSE_BUTTON_STATE_RELEASED;
-                    appData.xCoordinate =(int8_t)dir_table[vector & 0x07] ;
-                    appData.yCoordinate =(int8_t)dir_table[(vector+2) & 0x07];
+		    int movement = ((((int)accels[0]) * 20) / 32768);
+		    appData.xCoordinate =(int8_t)movement;		
+                    movement = ((((int)accels[1]) * 20) / 32768;	
+                    appData.yCoordinate =(int8_t)movement;
                     vector ++;
                     movement_length = 0;
+	            display_clear();		
+                    char str[30];		
+                    sprintf(str, "(X, Y): %d, %d", appData.xCoordinate, appData.yCoordinate);		
+                    display_write_string(str, 0, 0);		
+                    display_draw();
                 }
             }
             else
